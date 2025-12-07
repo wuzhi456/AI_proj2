@@ -37,7 +37,7 @@ env/
 # OS
 .DS_Store
 
-# Project specific
+# LaTeX auxiliary files (but not the final PDF)
 *.aux
 *.log
 *.out
@@ -47,4 +47,3 @@ env/
 *.fdb_latexmk
 *.synctex.gz
 *.toc
-*.pdf
