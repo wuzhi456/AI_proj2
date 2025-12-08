@@ -8,125 +8,126 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{url}
+\usepackage{ctex}  % 支持中文
 
 \begin{document}
 
-\title{Adult Census Income Prediction Using Simplified Neural Networks}
+\title{基于简化神经网络的成人普查收入预测}
 
-\author{\IEEEauthorblockN{Student Name}
-\IEEEauthorblockA{\textit{Department of Computer Science} \\
-\textit{Southern University of Science and Technology}\\
-Shenzhen, China \\
+\author{\IEEEauthorblockN{学生姓名}
+\IEEEauthorblockA{\textit{计算机科学与工程系} \\
+\textit{南方科技大学}\\
+深圳，中国 \\
 studentid@mail.sustech.edu.cn}}
 
 \maketitle
 
 \begin{abstract}
-This report presents a simplified neural network-based approach to predict whether an individual's income exceeds \$50,000 per year based on census data from the 1994 US Census Bureau database. We implement a streamlined multi-layer perceptron (MLP) using only ReLU activations with a softmax output layer, focusing on a clean architecture without batch normalization or dropout. The proposed model achieves competitive performance on the validation set with proper handling of categorical features and missing values. Experimental results demonstrate the effectiveness of straightforward deep learning architectures for this binary classification task.
+本报告提出了一种基于简化神经网络的方法，用于预测个人年收入是否超过50,000美元，数据来源于1994年美国人口普查局数据库。我们实现了一个精简的多层感知机(MLP)，仅使用ReLU激活函数和softmax输出层，专注于简洁的架构设计，不使用批归一化或dropout。所提出的模型在验证集上取得了具有竞争力的性能，并妥善处理了类别特征和缺失值。实验结果证明了简单直接的深度学习架构在这个二分类任务上的有效性。
 \end{abstract}
 
-\section{Introduction}
+\section{引言}
 
-Income prediction is a fundamental problem in socioeconomic analysis and policy making \cite{kohavi1996scaling}. The ability to accurately predict income levels based on demographic and employment characteristics has applications in tax policy, social welfare programs, and economic research.
+收入预测是社会经济分析和政策制定中的一个基本问题\cite{kohavi1996scaling}。基于人口统计和就业特征准确预测收入水平的能力在税收政策、社会福利项目和经济研究中具有重要应用价值。
 
-\subsection{Problem Background}
-The Adult Census Income dataset, extracted from the 1994 US Census Bureau database by Kohavi and Becker, contains demographic information about individuals including age, education, occupation, and other census attributes. The prediction task is to determine whether a person's annual income exceeds \$50,000, making this a supervised binary classification problem.
+\subsection{问题背景}
+成人普查收入数据集由Kohavi和Becker从1994年美国人口普查局数据库中提取，包含个人的人口统计信息，包括年龄、教育程度、职业和其他普查属性。预测任务是确定一个人的年收入是否超过50,000美元，这是一个有监督的二分类问题。
 
-\subsection{Motivation}
-Understanding the factors that influence income levels can help identify economic inequalities and inform policy decisions. Machine learning models can reveal complex patterns and interactions among demographic features that may not be immediately apparent through traditional statistical analysis.
+\subsection{研究动机}
+理解影响收入水平的因素有助于识别经济不平等现象并为政策决策提供信息。机器学习模型可以揭示人口统计特征之间的复杂模式和相互作用，这些模式和相互作用可能无法通过传统统计分析立即显现。
 
-\subsection{Report Organization}
-This report is organized as follows: Section II formally defines the problem and notation; Section III describes our methodology including data preprocessing and neural network architecture; Section IV presents experimental setup and results; and Section V concludes with discussion and future work.
+\subsection{报告组织}
+本报告组织如下：第二节正式定义问题和符号；第三节描述我们的方法，包括数据预处理和神经网络架构；第四节介绍实验设置和结果；第五节总结讨论和未来工作。
 
-\section{Preliminary}
+\section{预备知识}
 
-\subsection{Problem Formulation}
-We formalize the income prediction problem as a supervised binary classification task. Given a dataset $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$ where:
+\subsection{问题形式化}
+我们将收入预测问题形式化为一个有监督的二分类任务。给定数据集 $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$，其中：
 \begin{itemize}
-    \item $\mathbf{x}_i \in \mathbb{R}^d$ is a $d$-dimensional feature vector representing demographic and census attributes for individual $i$
-    \item $y_i \in \{0, 1\}$ is the binary label where $y_i = 0$ indicates income $\leq$\$50K and $y_i = 1$ indicates income $>$\$50K
-    \item $N$ is the total number of training samples
+    \item $\mathbf{x}_i \in \mathbb{R}^d$ 是一个 $d$ 维特征向量，表示个体 $i$ 的人口统计和普查属性
+    \item $y_i \in \{0, 1\}$ 是二元标签，其中 $y_i = 0$ 表示收入 $\leq$\$50K，$y_i = 1$ 表示收入 $>$\$50K
+    \item $N$ 是训练样本总数
 \end{itemize}
 
-The objective is to learn a classifier $f_\theta: \mathbb{R}^d \rightarrow \{0, 1\}$ parameterized by $\theta$ that minimizes the empirical risk:
+目标是学习一个由参数 $\theta$ 参数化的分类器 $f_\theta: \mathbb{R}^d \rightarrow \{0, 1\}$，使经验风险最小化：
 \begin{equation}
 \theta^* = \argmin_\theta \frac{1}{N}\sum_{i=1}^{N} \mathcal{L}(f_\theta(\mathbf{x}_i), y_i)
 \end{equation}
-where $\mathcal{L}$ is the cross-entropy loss function.
+其中 $\mathcal{L}$ 是交叉熵损失函数。
 
-\subsection{Dataset Description}
-The dataset consists of 14 features divided into two categories:
+\subsection{数据集描述}
+数据集包含14个特征，分为两类：
 
-\textbf{Numerical Features:}
+\textbf{数值特征：}
 \begin{itemize}
-    \item \texttt{age}: Age of the individual
-    \item \texttt{fnlwgt}: Final weight (census sampling weight)
-    \item \texttt{education\_num}: Years of education
-    \item \texttt{capital\_gain}: Capital gains
-    \item \texttt{capital\_loss}: Capital losses
-    \item \texttt{hours\_per\_week}: Hours worked per week
+    \item \texttt{age}: 个体年龄
+    \item \texttt{fnlwgt}: 最终权重（普查抽样权重）
+    \item \texttt{education\_num}: 受教育年限
+    \item \texttt{capital\_gain}: 资本收益
+    \item \texttt{capital\_loss}: 资本损失
+    \item \texttt{hours\_per\_week}: 每周工作小时数
 \end{itemize}
 
-\textbf{Categorical Features:}
+\textbf{类别特征：}
 \begin{itemize}
-    \item \texttt{workclass}: Employment type (e.g., Private, Government)
-    \item \texttt{education}: Education level
-    \item \texttt{marital\_status}: Marital status
-    \item \texttt{occupation}: Occupation type
-    \item \texttt{relationship}: Family relationship
-    \item \texttt{race}: Race
-    \item \texttt{sex}: Gender
-    \item \texttt{native\_country}: Country of origin
+    \item \texttt{workclass}: 就业类型（如私营、政府）
+    \item \texttt{education}: 教育水平
+    \item \texttt{marital\_status}: 婚姻状况
+    \item \texttt{occupation}: 职业类型
+    \item \texttt{relationship}: 家庭关系
+    \item \texttt{race}: 种族
+    \item \texttt{sex}: 性别
+    \item \texttt{native\_country}: 原籍国
 \end{itemize}
 
-\subsection{Notation}
-Throughout this report, we use the following notation:
+\subsection{符号说明}
+在本报告中，我们使用以下符号：
 \begin{itemize}
-    \item Bold lowercase letters ($\mathbf{x}$) denote vectors
-    \item Bold uppercase letters ($\mathbf{W}$) denote matrices
-    \item $\text{softmax}(\cdot)$ denotes the softmax activation function
-    \item $\text{ReLU}(\cdot)$ denotes the Rectified Linear Unit activation
-    \item $h^{(l)}$ denotes the hidden layer activations at layer $l$
+    \item 粗体小写字母（$\mathbf{x}$）表示向量
+    \item 粗体大写字母（$\mathbf{W}$）表示矩阵
+    \item $\text{softmax}(\cdot)$ 表示softmax激活函数
+    \item $\text{ReLU}(\cdot)$ 表示修正线性单元激活函数
+    \item $h^{(l)}$ 表示第 $l$ 层的隐藏层激活值
 \end{itemize}
 
-\section{Methodology}
+\section{方法论}
 
-\subsection{General Workflow}
-Our methodology consists of three main stages:
+\subsection{总体工作流程}
+我们的方法包含三个主要阶段：
 \begin{enumerate}
-    \item \textbf{Data Preprocessing}: Handle missing values, encode categorical features, and normalize numerical features
-    \item \textbf{Model Training}: Train a multi-layer perceptron using backpropagation with Adam optimizer
-    \item \textbf{Evaluation}: Assess model performance using multiple metrics and generate predictions
+    \item \textbf{数据预处理}：处理缺失值、编码类别特征并归一化数值特征
+    \item \textbf{模型训练}：使用Adam优化器和反向传播训练多层感知机
+    \item \textbf{评估}：使用多个指标评估模型性能并生成预测
 \end{enumerate}
 
-\subsection{Data Preprocessing Pipeline}
+\subsection{数据预处理流程}
 
-\subsubsection{Missing Value Handling}
-The dataset contains missing values represented as ``?''. We employ the following strategy:
+\subsubsection{缺失值处理}
+数据集包含用``?''表示的缺失值。我们采用以下策略：
 \begin{itemize}
-    \item For categorical features: Replace missing values with the mode (most frequent value)
-    \item For numerical features: Replace missing values with the median
+    \item 对于类别特征：用众数（最频繁的值）替换缺失值
+    \item 对于数值特征：用中位数替换缺失值
 \end{itemize}
 
-\subsubsection{Feature Encoding}
-Categorical features are encoded using label encoding, mapping each category to an integer value. This transformation is necessary as neural networks require numerical input.
+\subsubsection{特征编码}
+类别特征使用标签编码，将每个类别映射为整数值。这种转换是必要的，因为神经网络需要数值输入。
 
-\subsubsection{Feature Scaling}
-Numerical features are standardized using z-score normalization:
+\subsubsection{特征缩放}
+数值特征使用z-score标准化：
 \begin{equation}
 \mathbf{x}_{\text{scaled}} = \frac{\mathbf{x} - \mu}{\sigma}
 \end{equation}
-where $\mu$ is the mean and $\sigma$ is the standard deviation computed on the training set.
+其中 $\mu$ 是均值，$\sigma$ 是在训练集上计算的标准差。
 
-\subsection{Neural Network Architecture}
+\subsection{神经网络架构}
 
-We employ a simplified feed-forward multi-layer perceptron (MLP) with the following architecture:
+我们采用简化的前馈多层感知机(MLP)，架构如下：
 
 \begin{algorithm}[h]
-\caption{Forward Pass of Neural Network}
+\caption{神经网络前向传播}
 \begin{algorithmic}
-\STATE \textbf{Input:} Feature vector $\mathbf{x} \in \mathbb{R}^d$
-\STATE \textbf{Output:} Probability vector $\mathbf{p} \in [0,1]^2$
+\STATE \textbf{输入:} 特征向量 $\mathbf{x} \in \mathbb{R}^d$
+\STATE \textbf{输出:} 概率向量 $\mathbf{p} \in [0,1]^2$
 \STATE $\mathbf{h}^{(0)} \leftarrow \mathbf{x}$
 \FOR{$l = 1$ to $L$}
     \STATE $\mathbf{z}^{(l)} \leftarrow \mathbf{W}^{(l)}\mathbf{h}^{(l-1)} + \mathbf{b}^{(l)}$
@@ -134,211 +135,212 @@ We employ a simplified feed-forward multi-layer perceptron (MLP) with the follow
 \ENDFOR
 \STATE $\mathbf{z}^{\text{out}} \leftarrow \mathbf{W}^{\text{out}}\mathbf{h}^{(L)} + \mathbf{b}^{\text{out}}$
 \STATE $\mathbf{p} \leftarrow \text{softmax}(\mathbf{z}^{\text{out}})$
-\STATE \textbf{return} $\mathbf{p}$
+\STATE \textbf{返回} $\mathbf{p}$
 \end{algorithmic}
 \end{algorithm}
 
-The network consists of:
+网络组成：
 \begin{itemize}
-    \item \textbf{Input Layer}: $d$ neurons (number of features after preprocessing)
-    \item \textbf{Hidden Layers}: Three hidden layers with 128, 64, and 32 neurons respectively
-    \item \textbf{Activation}: ReLU activation function after each hidden layer
-    \item \textbf{Output Layer}: Two neurons with softmax activation for binary classification
+    \item \textbf{输入层}：$d$ 个神经元（预处理后的特征数量）
+    \item \textbf{隐藏层}：三个隐藏层，分别包含128、64和32个神经元
+    \item \textbf{激活函数}：每个隐藏层后使用ReLU激活函数
+    \item \textbf{输出层}：两个神经元，使用softmax激活函数进行二分类
 \end{itemize}
 
-\subsection{Training Procedure}
+\subsection{训练过程}
 
-\subsubsection{Loss Function}
-We use cross-entropy loss for multi-class classification:
+\subsubsection{损失函数}
+我们使用交叉熵损失函数进行多分类：
 \begin{equation}
 \mathcal{L}(\theta) = -\frac{1}{N}\sum_{i=1}^{N}\sum_{c=1}^{C}y_{i,c}\log(\hat{y}_{i,c})
 \end{equation}
-where $C=2$ is the number of classes, $y_{i,c}$ is the true label (one-hot encoded), and $\hat{y}_{i,c}$ is the predicted probability for class $c$.
+其中 $C=2$ 是类别数量，$y_{i,c}$ 是真实标签（one-hot编码），$\hat{y}_{i,c}$ 是类别 $c$ 的预测概率。
 
-\subsubsection{Optimization}
-The model is trained using the Adam optimizer with learning rate $\alpha = 0.001$. The training process:
+\subsubsection{优化}
+使用Adam优化器训练模型，学习率 $\alpha = 0.001$。训练过程：
 \begin{itemize}
-    \item Batch size: 128
-    \item Number of epochs: 50
-    \item Train-validation split: 80-20
-    \item Random seed: 42 (for reproducibility)
+    \item 批次大小：128
+    \item 训练轮数：50
+    \item 训练-验证集划分：80-20
+    \item 随机种子：42（确保可复现性）
 \end{itemize}
 
-\subsection{Complexity Analysis}
+\subsection{复杂度分析}
 
-\subsubsection{Time Complexity}
-For a neural network with $L$ layers and maximum width $W$:
+\subsubsection{时间复杂度}
+对于具有 $L$ 层和最大宽度 $W$ 的神经网络：
 \begin{itemize}
-    \item Forward pass: $O(L \cdot W^2)$ per sample
-    \item Backward pass: $O(L \cdot W^2)$ per sample
-    \item Training complexity: $O(E \cdot N \cdot L \cdot W^2)$ where $E$ is the number of epochs and $N$ is the training set size
+    \item 前向传播：每个样本 $O(L \cdot W^2)$
+    \item 反向传播：每个样本 $O(L \cdot W^2)$
+    \item 训练复杂度：$O(E \cdot N \cdot L \cdot W^2)$，其中 $E$ 是训练轮数，$N$ 是训练集大小
 \end{itemize}
 
-\subsubsection{Space Complexity}
-The space complexity is $O(d \cdot W + W^2 \cdot L)$ for storing parameters, where $d$ is the input dimension.
+\subsubsection{空间复杂度}
+存储参数的空间复杂度为 $O(d \cdot W + W^2 \cdot L)$，其中 $d$ 是输入维度。
 
-\section{Experiments}
 
-\subsection{Experimental Setup}
+\section{实验}
 
-\subsubsection{Dataset Statistics}
+\subsection{实验设置}
+
+\subsubsection{数据集统计}
 \begin{itemize}
-    \item Training samples: 22,792 (18,233 train + 4,559 validation)
-    \item Test samples: 9,769
-    \item Number of features: 14 (before preprocessing)
-    \item Class distribution: Imbalanced with approximately 76\% samples in class 0 ($\leq$\$50K) and 24\% in class 1 ($>$\$50K)
+    \item 训练样本：22,792个（18,233训练 + 4,559验证）
+    \item 测试样本：9,769个
+    \item 特征数量：14个（预处理前）
+    \item 类别分布：不平衡，约76\%样本属于类别0（$\leq$\$50K），24\%样本属于类别1（$>$\$50K）
 \end{itemize}
 
-\subsubsection{Implementation Details}
+\subsubsection{实现细节}
 \begin{itemize}
-    \item \textbf{Framework}: PyTorch 2.9.1
-    \item \textbf{Hardware}: CPU (Intel/AMD x86\_64 architecture)
-    \item \textbf{Python Version}: 3.12
-    \item \textbf{Additional Libraries}: NumPy 2.3.5, Pandas 2.3.3, Scikit-learn 1.7.2, Matplotlib 3.10.7
+    \item \textbf{框架}：PyTorch 2.9.1
+    \item \textbf{硬件}：CPU（Intel/AMD x86\_64架构）
+    \item \textbf{Python版本}：3.12
+    \item \textbf{其他库}：NumPy 2.3.5、Pandas 2.3.3、Scikit-learn 1.7.2、Matplotlib 3.10.7
 \end{itemize}
 
-\subsubsection{Evaluation Metrics}
-We evaluate model performance using multiple metrics:
+\subsubsection{评估指标}
+我们使用多个指标评估模型性能：
 \begin{itemize}
-    \item \textbf{Accuracy}: Overall correctness of predictions
-    \item \textbf{Precision}: Proportion of true positives among predicted positives
-    \item \textbf{Recall}: Proportion of true positives among actual positives
-    \item \textbf{F1-Score}: Harmonic mean of precision and recall
-    \item \textbf{ROC-AUC}: Area under the receiver operating characteristic curve
+    \item \textbf{准确率}：预测的总体正确性
+    \item \textbf{精确率}：预测为正例中真正例的比例
+    \item \textbf{召回率}：实际正例中被正确预测的比例
+    \item \textbf{F1分数}：精确率和召回率的调和平均值
+    \item \textbf{ROC-AUC}：受试者工作特征曲线下面积
 \end{itemize}
 
-\subsection{Results}
+\subsection{结果}
 
-\subsubsection{Training Progress}
-Figure \ref{fig:training} shows the training and validation loss/accuracy curves over 50 epochs. The model converges smoothly without significant overfitting, as evidenced by the validation metrics tracking closely with training metrics.
+\subsubsection{训练进程}
+图\ref{fig:training}展示了50个训练轮次中训练和验证的损失/准确率曲线。模型平稳收敛，没有明显过拟合，验证指标与训练指标紧密跟踪。
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=\linewidth]{figures/training_history.png}
-\caption{Training and validation loss/accuracy over epochs}
+\caption{训练和验证损失/准确率随训练轮次的变化}
 \label{fig:training}
 \end{figure}
 
-\subsubsection{Performance Metrics}
-Table \ref{tab:performance} presents the final performance metrics on the validation set.
+\subsubsection{性能指标}
+表\ref{tab:performance}展示了验证集上的最终性能指标。
 
 \begin{table}[h]
 \centering
-\caption{Model Performance on Validation Set}
+\caption{模型在验证集上的性能}
 \label{tab:performance}
 \begin{tabular}{@{}lc@{}}
 \toprule
-\textbf{Metric} & \textbf{Value} \\
+\textbf{指标} & \textbf{数值} \\
 \midrule
-Accuracy & 0.8462 \\
-Precision & 0.7311 \\
-Recall & 0.5719 \\
-F1-Score & 0.6418 \\
+准确率 & 0.8462 \\
+精确率 & 0.7311 \\
+召回率 & 0.5719 \\
+F1分数 & 0.6418 \\
 ROC-AUC & 0.9035 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsubsection{Confusion Matrix Analysis}
-Figure \ref{fig:confusion} shows the confusion matrix on the validation set. The model demonstrates good performance on both classes, though with some bias toward the majority class due to class imbalance.
+\subsubsection{混淆矩阵分析}
+图\ref{fig:confusion}展示了验证集上的混淆矩阵。模型在两个类别上都表现良好，但由于类别不平衡，对多数类有一定偏向。
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.8\linewidth]{figures/confusion_matrix.png}
-\caption{Confusion matrix on validation set}
+\caption{验证集上的混淆矩阵}
 \label{fig:confusion}
 \end{figure}
 
-\subsubsection{ROC Curve}
-Figure \ref{fig:roc} presents the ROC curve, demonstrating the model's ability to discriminate between classes at various threshold values.
+\subsubsection{ROC曲线}
+图\ref{fig:roc}展示了ROC曲线，证明了模型在各种阈值下区分类别的能力。
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.8\linewidth]{figures/roc_curve.png}
-\caption{ROC curve and AUC score}
+\caption{ROC曲线和AUC分数}
 \label{fig:roc}
 \end{figure}
 
-\subsection{Hyperparameter Analysis}
+\subsection{超参数分析}
 
-We experimented with different configurations:
+我们实验了不同的配置：
 \begin{itemize}
-    \item \textbf{Network Depth}: Tested architectures with 2-4 hidden layers. Three layers provided the best balance between capacity and simplicity.
-    \item \textbf{Layer Width}: Decreasing width (128→64→32) performed better than uniform width, allowing gradual feature abstraction.
-    \item \textbf{Learning Rate}: Tested $\{0.0001, 0.001, 0.01\}$; 0.001 achieved fastest convergence without instability.
-    \item \textbf{Architecture Simplicity}: A clean architecture with only ReLU activations proved effective, eliminating the need for batch normalization or dropout.
+    \item \textbf{网络深度}：测试了具有2-4个隐藏层的架构。三层在容量和简洁性之间提供了最佳平衡。
+    \item \textbf{层宽度}：递减宽度（128→64→32）优于均匀宽度，允许逐步特征抽象。
+    \item \textbf{学习率}：测试了$\{0.0001, 0.001, 0.01\}$；0.001在不出现不稳定的情况下实现最快收敛。
+    \item \textbf{架构简洁性}：仅使用ReLU激活的简洁架构证明是有效的，无需批归一化或dropout。
 \end{itemize}
 
-\subsection{Analysis and Discussion}
+\subsection{分析与讨论}
 
-\subsubsection{Model Performance}
-The simplified neural network achieves competitive performance on this dataset. The high ROC-AUC score indicates strong discriminative ability between income classes. The model benefits from:
+\subsubsection{模型性能}
+简化的神经网络在该数据集上取得了具有竞争力的性能。高ROC-AUC分数表明在收入类别之间具有强大的判别能力。模型受益于：
 \begin{itemize}
-    \item Clean architecture with straightforward ReLU activations
-    \item Softmax output providing well-calibrated probability estimates
-    \item Proper feature scaling enabling efficient learning
+    \item 简洁的架构，采用直接的ReLU激活
+    \item Softmax输出提供良好校准的概率估计
+    \item 适当的特征缩放实现高效学习
 \end{itemize}
 
-\subsubsection{Class Imbalance Impact}
-The dataset exhibits class imbalance (76\% vs 24\%), which affects model predictions. The model shows higher accuracy on the majority class ($\leq$\$50K), as reflected in the confusion matrix. Future work could address this through:
+\subsubsection{类别不平衡的影响}
+数据集存在类别不平衡（76\% vs 24\%），这影响了模型预测。模型在多数类（$\leq$\$50K）上显示出更高的准确率，如混淆矩阵所示。未来工作可以通过以下方式解决这个问题：
 \begin{itemize}
-    \item Class-weighted loss functions
-    \item Oversampling minority class (SMOTE)
-    \item Threshold adjustment for predictions
+    \item 类别加权损失函数
+    \item 对少数类进行过采样（SMOTE）
+    \item 调整预测阈值
 \end{itemize}
 
-\subsubsection{Feature Importance}
-While neural networks are often considered "black boxes," certain features likely contribute more to predictions:
+\subsubsection{特征重要性}
+虽然神经网络通常被认为是"黑盒"，但某些特征可能对预测贡献更大：
 \begin{itemize}
-    \item Education level and years of education
-    \item Occupation and hours per week
-    \item Capital gain/loss
-    \item Age and marital status
+    \item 教育水平和受教育年限
+    \item 职业和每周工作小时数
+    \item 资本收益/损失
+    \item 年龄和婚姻状况
 \end{itemize}
 
-\section{Conclusion}
+\section{结论}
 
-\subsection{Summary}
-This project successfully applied neural networks to the Adult Census Income prediction problem. Our simplified multi-layer perceptron with careful preprocessing achieves strong performance on the validation set. The methodology demonstrates the effectiveness of clean, straightforward deep learning architectures for tabular data classification tasks.
+\subsection{总结}
+本项目成功将神经网络应用于成人普查收入预测问题。我们的简化多层感知机通过仔细的预处理在验证集上取得了强大的性能。该方法论证明了简洁、直接的深度学习架构在表格数据分类任务上的有效性。
 
-\subsection{Key Findings}
+\subsection{关键发现}
 \begin{itemize}
-    \item Proper data preprocessing is crucial for neural network performance
-    \item A simplified architecture with only ReLU activations is effective
-    \item Softmax activation provides well-calibrated probability outputs
-    \item A three-layer architecture provides sufficient capacity for this problem
-    \item The model handles both categorical and numerical features effectively
+    \item 适当的数据预处理对神经网络性能至关重要
+    \item 仅使用ReLU激活的简化架构是有效的
+    \item Softmax激活提供良好校准的概率输出
+    \item 三层架构为此问题提供了足够的容量
+    \item 模型有效处理类别和数值特征
 \end{itemize}
 
-\subsection{Limitations}
-Several limitations should be noted:
+\subsection{局限性}
+应该注意以下几个局限性：
 \begin{itemize}
-    \item Class imbalance affects prediction bias
-    \item Label encoding may not capture ordinal relationships in some categorical features
-    \item The model lacks interpretability compared to decision trees
-    \item The simplified architecture may underfit compared to more complex models with regularization
+    \item 类别不平衡影响预测偏差
+    \item 标签编码可能无法捕获某些类别特征中的序数关系
+    \item 与决策树相比，模型缺乏可解释性
+    \item 与使用正则化的更复杂模型相比，简化的架构可能存在欠拟合
 \end{itemize}
 
-\subsection{Future Work}
-Potential improvements include:
+\subsection{未来工作}
+潜在的改进包括：
 \begin{itemize}
-    \item Implementing class balancing techniques (SMOTE, class weights)
-    \item Exploring one-hot encoding for categorical features
-    \item Testing regularization techniques (batch normalization, dropout, L2)
-    \item Feature engineering to create interaction terms
-    \item Hyperparameter optimization using grid search or Bayesian optimization
-    \item Model interpretation using techniques like SHAP or LIME
-    \item Comparison with other algorithms (XGBoost, Random Forest, SVM)
+    \item 实现类别平衡技术（SMOTE、类别权重）
+    \item 探索类别特征的one-hot编码
+    \item 测试正则化技术（批归一化、dropout、L2正则化）
+    \item 特征工程以创建交互项
+    \item 使用网格搜索或贝叶斯优化进行超参数优化
+    \item 使用SHAP或LIME等技术进行模型解释
+    \item 与其他算法（XGBoost、随机森林、SVM）进行比较
 \end{itemize}
 
-\subsection{Lessons Learned}
-This project provided valuable insights into:
+\subsection{经验教训}
+本项目提供了以下宝贵见解：
 \begin{itemize}
-    \item Importance of systematic data preprocessing
-    \item Balancing model complexity and generalization
-    \item Effective use of PyTorch for classification tasks
-    \item Evaluation using multiple complementary metrics
-    \item Trade-offs between accuracy and interpretability
+    \item 系统化数据预处理的重要性
+    \item 平衡模型复杂度和泛化能力
+    \item 有效使用PyTorch进行分类任务
+    \item 使用多个互补指标进行评估
+    \item 准确率和可解释性之间的权衡
 \end{itemize}
 
 \begin{thebibliography}{00}
