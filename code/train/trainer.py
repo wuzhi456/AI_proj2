@@ -27,7 +27,7 @@ class Trainer:
         """
         self.model = model.to(device)
         self.device = device
-        self.criterion = nn.BCELoss()
+        self.criterion = nn.CrossEntropyLoss()  # Changed from BCELoss for softmax
         self.optimizer = optim.Adam(model.parameters(), lr=learning_rate)
         self.history = {
             'train_loss': [],
@@ -53,11 +53,11 @@ class Trainer:
         
         for batch_X, batch_y in train_loader:
             batch_X = batch_X.to(self.device)
-            batch_y = batch_y.to(self.device)
+            batch_y = batch_y.to(self.device).long()  # Convert to long for CrossEntropyLoss
             
             # Forward pass
             outputs = self.model(batch_X)
-            loss = self.criterion(outputs, batch_y.unsqueeze(1))
+            loss = self.criterion(outputs, batch_y)
             
             # Backward pass and optimization
             self.optimizer.zero_grad()
@@ -67,7 +67,7 @@ class Trainer:
             total_loss += loss.item()
             
             # Store predictions for accuracy calculation
-            preds = (outputs > 0.5).float()
+            preds = torch.argmax(outputs, dim=1)
             predictions.extend(preds.cpu().numpy())
             targets.extend(batch_y.cpu().numpy())
         
@@ -94,14 +94,14 @@ class Trainer:
         with torch.no_grad():
             for batch_X, batch_y in val_loader:
                 batch_X = batch_X.to(self.device)
-                batch_y = batch_y.to(self.device)
+                batch_y = batch_y.to(self.device).long()
                 
                 outputs = self.model(batch_X)
-                loss = self.criterion(outputs, batch_y.unsqueeze(1))
+                loss = self.criterion(outputs, batch_y)
                 
                 total_loss += loss.item()
                 
-                preds = (outputs > 0.5).float()
+                preds = torch.argmax(outputs, dim=1)
                 predictions.extend(preds.cpu().numpy())
                 targets.extend(batch_y.cpu().numpy())
         
@@ -172,7 +172,7 @@ class Trainer:
         with torch.no_grad():
             X_test_tensor = torch.FloatTensor(X_test).to(self.device)
             outputs = self.model(X_test_tensor)
-            predictions = (outputs > 0.5).float().cpu().numpy().flatten()
+            predictions = torch.argmax(outputs, dim=1).cpu().numpy()
         
         return predictions.astype(int)
     
@@ -184,14 +184,14 @@ class Trainer:
             X_test (np.ndarray): Test features
             
         Returns:
-            np.ndarray: Probability predictions
+            np.ndarray: Probability predictions for class 1
         """
         self.model.eval()
         
         with torch.no_grad():
             X_test_tensor = torch.FloatTensor(X_test).to(self.device)
             outputs = self.model(X_test_tensor)
-            probabilities = outputs.cpu().numpy().flatten()
+            probabilities = outputs[:, 1].cpu().numpy()  # Get probability for class 1
         
         return probabilities
     
