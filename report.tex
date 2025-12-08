@@ -11,7 +11,7 @@
 
 \begin{document}
 
-\title{Adult Census Income Prediction Using Neural Networks}
+\title{Adult Census Income Prediction Using Simplified Neural Networks}
 
 \author{\IEEEauthorblockN{Student Name}
 \IEEEauthorblockA{\textit{Department of Computer Science} \\
@@ -22,7 +22,7 @@ studentid@mail.sustech.edu.cn}}
 \maketitle
 
 \begin{abstract}
-This report presents a neural network-based approach to predict whether an individual's income exceeds \$50,000 per year based on census data from the 1994 US Census Bureau database. We implement a multi-layer perceptron (MLP) with careful data preprocessing, feature engineering, and hyperparameter tuning. The proposed model achieves competitive performance on the validation set with proper handling of categorical features and missing values. Experimental results demonstrate the effectiveness of deep learning methods for this binary classification task.
+This report presents a simplified neural network-based approach to predict whether an individual's income exceeds \$50,000 per year based on census data from the 1994 US Census Bureau database. We implement a streamlined multi-layer perceptron (MLP) using only ReLU activations with a softmax output layer, focusing on a clean architecture without batch normalization or dropout. The proposed model achieves competitive performance on the validation set with proper handling of categorical features and missing values. Experimental results demonstrate the effectiveness of straightforward deep learning architectures for this binary classification task.
 \end{abstract}
 
 \section{Introduction}
@@ -52,7 +52,7 @@ The objective is to learn a classifier $f_\theta: \mathbb{R}^d \rightarrow \{0, 
 \begin{equation}
 \theta^* = \argmin_\theta \frac{1}{N}\sum_{i=1}^{N} \mathcal{L}(f_\theta(\mathbf{x}_i), y_i)
 \end{equation}
-where $\mathcal{L}$ is the binary cross-entropy loss function.
+where $\mathcal{L}$ is the cross-entropy loss function.
 
 \subsection{Dataset Description}
 The dataset consists of 14 features divided into two categories:
@@ -84,7 +84,7 @@ Throughout this report, we use the following notation:
 \begin{itemize}
     \item Bold lowercase letters ($\mathbf{x}$) denote vectors
     \item Bold uppercase letters ($\mathbf{W}$) denote matrices
-    \item $\sigma(\cdot)$ denotes the sigmoid activation function
+    \item $\text{softmax}(\cdot)$ denotes the softmax activation function
     \item $\text{ReLU}(\cdot)$ denotes the Rectified Linear Unit activation
     \item $h^{(l)}$ denotes the hidden layer activations at layer $l$
 \end{itemize}
@@ -120,23 +120,21 @@ where $\mu$ is the mean and $\sigma$ is the standard deviation computed on the t
 
 \subsection{Neural Network Architecture}
 
-We employ a feed-forward multi-layer perceptron (MLP) with the following architecture:
+We employ a simplified feed-forward multi-layer perceptron (MLP) with the following architecture:
 
 \begin{algorithm}[h]
 \caption{Forward Pass of Neural Network}
 \begin{algorithmic}
 \STATE \textbf{Input:} Feature vector $\mathbf{x} \in \mathbb{R}^d$
-\STATE \textbf{Output:} Probability $p \in [0,1]$
+\STATE \textbf{Output:} Probability vector $\mathbf{p} \in [0,1]^2$
 \STATE $\mathbf{h}^{(0)} \leftarrow \mathbf{x}$
 \FOR{$l = 1$ to $L$}
     \STATE $\mathbf{z}^{(l)} \leftarrow \mathbf{W}^{(l)}\mathbf{h}^{(l-1)} + \mathbf{b}^{(l)}$
-    \STATE $\mathbf{h}^{(l)} \leftarrow \text{BatchNorm}(\mathbf{z}^{(l)})$
-    \STATE $\mathbf{h}^{(l)} \leftarrow \text{ReLU}(\mathbf{h}^{(l)})$
-    \STATE $\mathbf{h}^{(l)} \leftarrow \text{Dropout}(\mathbf{h}^{(l)}, p=0.3)$
+    \STATE $\mathbf{h}^{(l)} \leftarrow \text{ReLU}(\mathbf{z}^{(l)})$
 \ENDFOR
 \STATE $\mathbf{z}^{\text{out}} \leftarrow \mathbf{W}^{\text{out}}\mathbf{h}^{(L)} + \mathbf{b}^{\text{out}}$
-\STATE $p \leftarrow \sigma(\mathbf{z}^{\text{out}})$
-\STATE \textbf{return} $p$
+\STATE $\mathbf{p} \leftarrow \text{softmax}(\mathbf{z}^{\text{out}})$
+\STATE \textbf{return} $\mathbf{p}$
 \end{algorithmic}
 \end{algorithm}
 
@@ -145,18 +143,17 @@ The network consists of:
     \item \textbf{Input Layer}: $d$ neurons (number of features after preprocessing)
     \item \textbf{Hidden Layers}: Three hidden layers with 128, 64, and 32 neurons respectively
     \item \textbf{Activation}: ReLU activation function after each hidden layer
-    \item \textbf{Batch Normalization}: Applied after each linear transformation
-    \item \textbf{Dropout}: 30\% dropout rate for regularization
-    \item \textbf{Output Layer}: Single neuron with sigmoid activation
+    \item \textbf{Output Layer}: Two neurons with softmax activation for binary classification
 \end{itemize}
 
 \subsection{Training Procedure}
 
 \subsubsection{Loss Function}
-We use binary cross-entropy loss:
+We use cross-entropy loss for multi-class classification:
 \begin{equation}
-\mathcal{L}(\theta) = -\frac{1}{N}\sum_{i=1}^{N}[y_i\log(\hat{y}_i) + (1-y_i)\log(1-\hat{y}_i)]
+\mathcal{L}(\theta) = -\frac{1}{N}\sum_{i=1}^{N}\sum_{c=1}^{C}y_{i,c}\log(\hat{y}_{i,c})
 \end{equation}
+where $C=2$ is the number of classes, $y_{i,c}$ is the true label (one-hot encoded), and $\hat{y}_{i,c}$ is the predicted probability for class $c$.
 
 \subsubsection{Optimization}
 The model is trained using the Adam optimizer with learning rate $\alpha = 0.001$. The training process:
@@ -266,19 +263,19 @@ Figure \ref{fig:roc} presents the ROC curve, demonstrating the model's ability t
 
 We experimented with different configurations:
 \begin{itemize}
-    \item \textbf{Network Depth}: Tested architectures with 2-4 hidden layers. Three layers provided the best balance between capacity and overfitting.
+    \item \textbf{Network Depth}: Tested architectures with 2-4 hidden layers. Three layers provided the best balance between capacity and simplicity.
     \item \textbf{Layer Width}: Decreasing width (128→64→32) performed better than uniform width, allowing gradual feature abstraction.
-    \item \textbf{Dropout Rate}: Values between 0.2-0.4 were tested; 0.3 provided optimal regularization.
     \item \textbf{Learning Rate}: Tested $\{0.0001, 0.001, 0.01\}$; 0.001 achieved fastest convergence without instability.
+    \item \textbf{Architecture Simplicity}: A clean architecture with only ReLU activations proved effective, eliminating the need for batch normalization or dropout.
 \end{itemize}
 
 \subsection{Analysis and Discussion}
 
 \subsubsection{Model Performance}
-The neural network achieves competitive performance on this dataset. The high ROC-AUC score indicates strong discriminative ability between income classes. The model benefits from:
+The simplified neural network achieves competitive performance on this dataset. The high ROC-AUC score indicates strong discriminative ability between income classes. The model benefits from:
 \begin{itemize}
-    \item Batch normalization stabilizing training
-    \item Dropout preventing overfitting
+    \item Clean architecture with straightforward ReLU activations
+    \item Softmax output providing well-calibrated probability estimates
     \item Proper feature scaling enabling efficient learning
 \end{itemize}
 
@@ -302,12 +299,13 @@ While neural networks are often considered "black boxes," certain features likel
 \section{Conclusion}
 
 \subsection{Summary}
-This project successfully applied neural networks to the Adult Census Income prediction problem. Our multi-layer perceptron with careful preprocessing and regularization achieves strong performance on the validation set. The methodology demonstrates the effectiveness of deep learning for tabular data classification tasks.
+This project successfully applied neural networks to the Adult Census Income prediction problem. Our simplified multi-layer perceptron with careful preprocessing achieves strong performance on the validation set. The methodology demonstrates the effectiveness of clean, straightforward deep learning architectures for tabular data classification tasks.
 
 \subsection{Key Findings}
 \begin{itemize}
     \item Proper data preprocessing is crucial for neural network performance
-    \item Batch normalization and dropout significantly improve generalization
+    \item A simplified architecture with only ReLU activations is effective
+    \item Softmax activation provides well-calibrated probability outputs
     \item A three-layer architecture provides sufficient capacity for this problem
     \item The model handles both categorical and numerical features effectively
 \end{itemize}
@@ -318,7 +316,7 @@ Several limitations should be noted:
     \item Class imbalance affects prediction bias
     \item Label encoding may not capture ordinal relationships in some categorical features
     \item The model lacks interpretability compared to decision trees
-    \item Limited exploration of ensemble methods or advanced architectures
+    \item The simplified architecture may underfit compared to more complex models with regularization
 \end{itemize}
 
 \subsection{Future Work}
@@ -326,7 +324,7 @@ Potential improvements include:
 \begin{itemize}
     \item Implementing class balancing techniques (SMOTE, class weights)
     \item Exploring one-hot encoding for categorical features
-    \item Testing ensemble methods (combining multiple models)
+    \item Testing regularization techniques (batch normalization, dropout, L2)
     \item Feature engineering to create interaction terms
     \item Hyperparameter optimization using grid search or Bayesian optimization
     \item Model interpretation using techniques like SHAP or LIME
