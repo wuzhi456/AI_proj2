@@ -133,7 +133,49 @@ class DataPreprocessor:
         
         return scaled
     
-    def preprocess(self, train_df, train_labels, test_df):
+    def downsample(self, X, y, random_state=42):
+        """
+        Downsample the majority class to balance the dataset.
+        
+        This method reduces the number of samples in the majority class
+        to match the number of samples in the minority class.
+        
+        Args:
+            X (np.ndarray): Feature array
+            y (np.ndarray): Label array
+            random_state (int): Random seed for reproducibility
+            
+        Returns:
+            tuple: (X_downsampled, y_downsampled)
+        """
+        np.random.seed(random_state)
+        
+        # Find minority and majority classes
+        unique, counts = np.unique(y, return_counts=True)
+        minority_class = unique[np.argmin(counts)]
+        majority_class = unique[np.argmax(counts)]
+        minority_count = counts.min()
+        
+        # Get indices for each class
+        minority_indices = np.where(y == minority_class)[0]
+        majority_indices = np.where(y == majority_class)[0]
+        
+        # Randomly sample from majority class
+        downsampled_majority_indices = np.random.choice(
+            majority_indices, 
+            size=minority_count, 
+            replace=False
+        )
+        
+        # Combine indices
+        downsampled_indices = np.concatenate([minority_indices, downsampled_majority_indices])
+        
+        # Shuffle the combined indices
+        np.random.shuffle(downsampled_indices)
+        
+        return X[downsampled_indices], y[downsampled_indices]
+    
+    def preprocess(self, train_df, train_labels, test_df, apply_downsampling=False, random_state=42):
         """
         Full preprocessing pipeline.
         
@@ -141,6 +183,8 @@ class DataPreprocessor:
             train_df (pd.DataFrame): Training data
             train_labels (np.ndarray): Training labels
             test_df (pd.DataFrame): Test data
+            apply_downsampling (bool): Whether to apply downsampling to balance classes
+            random_state (int): Random seed for downsampling reproducibility
             
         Returns:
             tuple: (X_train_scaled, y_train, X_test_scaled, feature_names)
@@ -162,5 +206,9 @@ class DataPreprocessor:
         # Scale features
         X_train_scaled = self.scale_features(train_df, is_training=True)
         X_test_scaled = self.scale_features(test_df, is_training=False)
+        
+        # Apply downsampling if requested
+        if apply_downsampling:
+            X_train_scaled, train_labels = self.downsample(X_train_scaled, train_labels, random_state)
         
         return X_train_scaled, train_labels, X_test_scaled, self.feature_names
