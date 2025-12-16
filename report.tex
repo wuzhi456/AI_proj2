@@ -8,26 +8,27 @@
 \usepackage{xcolor}
 \usepackage{booktabs}
 \usepackage{url}
-\usepackage{ctex} 
+\usepackage{ctex}  % 支持中文
 
 \begin{document}
 
-\title{基于ANN的成人收入二分类模型设计}
+\title{基于简化神经网络的成人普查收入预测}
 
-\author{\IEEEauthorblockN{韦嘉豪}
+\author{\IEEEauthorblockN{学生姓名}
 \IEEEauthorblockA{\textit{计算机科学与工程系} \\
 \textit{南方科技大学}\\
-12313319@mail.sustech.edu.cn}}
+深圳，中国 \\
+studentid@mail.sustech.edu.cn}}
 
 \maketitle
 
 \begin{abstract}
-本报告提出了一种基于简化神经网络的方法，用于预测个人年收入是否超过50,000美元，数据来源于1994年美国人口普查局数据库。我们通过多层感知机(MLP)实现了一个ANN模型，使用ReLU激活函数和softmax输出层。此模型在验证集上有着良好的表现。实验结果证明了ANN的深度学习架构在这个二分类任务上的有效性。
+本报告提出了一种基于简化神经网络的方法，用于预测个人年收入是否超过50,000美元，数据来源于1994年美国人口普查局数据库。我们实现了一个精简的多层感知机(MLP)，仅使用ReLU激活函数和softmax输出层，专注于简洁的架构设计，不使用批归一化或dropout。所提出的模型在验证集上取得了具有竞争力的性能，并妥善处理了类别特征和缺失值。实验结果证明了简单直接的深度学习架构在这个二分类任务上的有效性。
 \end{abstract}
 
 \section{引言}
 
-收入预测是社会经济分析和政策制定中的一个基本问题。基于人口统计和就业特征准确预测收入水平的能力在税收政策、社会福利项目和经济研究中具有重要应用价值。
+收入预测是社会经济分析和政策制定中的一个基本问题\cite{kohavi1996scaling}。基于人口统计和就业特征准确预测收入水平的能力在税收政策、社会福利项目和经济研究中具有重要应用价值。
 
 \subsection{问题背景}
 成人普查收入数据集由Kohavi和Becker从1994年美国人口普查局数据库中提取，包含个人的人口统计信息，包括年龄、教育程度、职业和其他普查属性。预测任务是确定一个人的年收入是否超过50,000美元，这是一个有监督的二分类问题。
@@ -129,7 +130,7 @@
 
 \subsection{神经网络架构}
 
-我们采用多层感知机(MLP)，架构如下：
+我们采用简化的前馈多层感知机(MLP)，架构如下：
 
 \begin{algorithm}[h]
 \caption{神经网络前向传播}
@@ -165,12 +166,12 @@
 其中 $C=2$ 是类别数量，$y_{i,c}$ 是真实标签（one-hot编码），$\hat{y}_{i,c}$ 是类别 $c$ 的预测概率。
 
 \subsubsection{优化}
-使用Adam优化器训练模型，学习率 $\alpha = 0.00001$。训练过程：
+使用Adam优化器训练模型，学习率 $\alpha = 0.001$。训练过程：
 \begin{itemize}
     \item 批次大小：128
-    \item 训练轮数：500
+    \item 训练轮数：50
     \item 训练-验证集划分：80-20
-    \item 随机种子：1
+    \item 随机种子：42（确保可复现性）
 \end{itemize}
 
 \subsection{复杂度分析}
@@ -202,7 +203,7 @@
 \subsubsection{实现细节}
 \begin{itemize}
     \item \textbf{框架}：PyTorch 2.9.1
-    \item \textbf{硬件}：CPU
+    \item \textbf{硬件}：CPU（Intel/AMD x86\_64架构）
     \item \textbf{Python版本}：3.12
     \item \textbf{其他库}：NumPy 2.3.5、Pandas 2.3.3、Scikit-learn 1.7.2、Matplotlib 3.10.7
 \end{itemize}
@@ -210,12 +211,11 @@
 \subsubsection{评估指标}
 我们使用多个指标评估模型性能：
 \begin{itemize}
-    \item \textbf{准确率}：预测的总体正确性；
-    \item \textbf{精确率}：预测为正例中真正例的比例；
-    \item \textbf{召回率}：实际正例中被正确预测的比例；
-    \item \textbf{F1分数}：精确率和召回率的调和平均值；
-    \item \textbf{ROC-AUC}：受试者工作特征曲线下面积。
-\text{其中，我们以提高准确率作为训练该模型的主要目的。}
+    \item \textbf{准确率}：预测的总体正确性
+    \item \textbf{精确率}：预测为正例中真正例的比例
+    \item \textbf{召回率}：实际正例中被正确预测的比例
+    \item \textbf{F1分数}：精确率和召回率的调和平均值
+    \item \textbf{ROC-AUC}：受试者工作特征曲线下面积
 \end{itemize}
 
 \subsection{结果}
@@ -276,7 +276,7 @@ ROC-AUC & 0.9035 \\
 \begin{itemize}
     \item \textbf{网络深度}：测试了具有2-4个隐藏层的架构。三层在容量和简洁性之间提供了最佳平衡。
     \item \textbf{层宽度}：递减宽度（128→64→32）优于均匀宽度，允许逐步特征抽象。
-    \item \textbf{学习率}：测试了$\{0.00001, 0.0001, 0.001, 0.01\}$；0.00001在不出现不稳定的情况下实现较快收敛，（其余情况在收敛时测试集准确率总会以一定幅度上下波动，目前看来震荡较小的只有0.00001，大概在345次左右开始收敛）。
+    \item \textbf{学习率}：测试了$\{0.0001, 0.001, 0.01\}$；0.001在不出现不稳定的情况下实现最快收敛。
     \item \textbf{架构简洁性}：仅使用ReLU激活的简洁架构证明是有效的，无需批归一化或dropout。
 \end{itemize}
 
@@ -285,22 +285,22 @@ ROC-AUC & 0.9035 \\
 \subsubsection{模型性能}
 简化的神经网络在该数据集上取得了具有竞争力的性能。高ROC-AUC分数表明在收入类别之间具有强大的判别能力。模型受益于：
 \begin{itemize}
-    \item 采用ReLU激活
+    \item 简洁的架构，采用直接的ReLU激活
     \item Softmax输出提供良好校准的概率估计
     \item 适当的特征缩放实现高效学习
 \end{itemize}
 
 \subsubsection{类别不平衡的影响}
+数据集存在类别不平衡（76\% vs 24\%），这影响了模型预测。模型在多数类（$\leq$\$50K）上显示出更高的准确率，如混淆矩阵所示。未来工作可以通过以下方式解决这个问题：
 数据集存在类别不平衡（76\% vs 24\%），这影响了模型预测，在之前尝试过的MLP训练中，对于1:1的数据二分类中直接使用该模型过拟合情况没有本次项目中严重，本次项目过拟合情况具体表现在随着训练的进行测试集准确率有微小下降的趋势。模型在多数类（$\leq$\$50K）上显示出更高的准确率，如混淆矩阵所示。为解决这个问题，我们实现了下采样技术，通过减少多数类样本数量来平衡训练数据。此外，未来工作还可以通过以下方式进一步改进：
 \begin{itemize}
     \item 类别加权损失函数
     \item 对少数类进行过采样（SMOTE）
     \item 调整预测阈值
-    \item 采用Dropout、BatchNorm等正则化技术来防止过拟合现象的出现
 \end{itemize}
 
 \subsubsection{特征重要性}
-虽然神经网络通常被认为是"黑盒"，但部分特征可能对预测贡献更大：
+虽然神经网络通常被认为是"黑盒"，但某些特征可能对预测贡献更大：
 \begin{itemize}
     \item 教育水平和受教育年限
     \item 职业和每周工作小时数
@@ -311,7 +311,7 @@ ROC-AUC & 0.9035 \\
 \section{结论}
 
 \subsection{总结}
-本项目成功将神经网络应用于成人普查收入预测问题。此次的MLP在验证集上取得了可观的性能。该方法论证明了简洁、直接的ANN深度学习架构在表格数据分类任务上的有效性。
+本项目成功将神经网络应用于成人普查收入预测问题。我们的简化多层感知机通过仔细的预处理在验证集上取得了强大的性能。该方法论证明了简洁、直接的深度学习架构在表格数据分类任务上的有效性。
 
 \subsection{关键发现}
 \begin{itemize}
@@ -328,6 +328,7 @@ ROC-AUC & 0.9035 \\
     \item 类别不平衡影响预测偏差
     \item 标签编码可能无法捕获某些类别特征中的序数关系
     \item 与决策树相比，模型缺乏可解释性
+    \item 与使用正则化的更复杂模型相比，简化的架构可能存在欠拟合
 \end{itemize}
 
 \subsection{未来工作}
@@ -339,7 +340,7 @@ ROC-AUC & 0.9035 \\
     \item 特征工程以创建交互项
     \item 使用网格搜索或贝叶斯优化进行超参数优化
     \item 使用SHAP或LIME等技术进行模型解释
-    \item 与其他算法（随机森林、SVM）进行比较
+    \item 与其他算法（XGBoost、随机森林、SVM）进行比较
 \end{itemize}
 
 \subsection{经验教训}
@@ -352,7 +353,12 @@ ROC-AUC & 0.9035 \\
     \item 准确率和可解释性之间的权衡
 \end{itemize}
 
-% \begin{thebibliography}{00}
-% \end{thebibliography}
+\begin{thebibliography}{00}
+\bibitem{kohavi1996scaling} R. Kohavi, ``Scaling up the accuracy of naive-bayes classifiers: A decision-tree hybrid,'' in \textit{Proceedings of the Second International Conference on Knowledge Discovery and Data Mining}, 1996, pp. 202--207.
+\bibitem{goodfellow2016deep} I. Goodfellow, Y. Bengio, and A. Courville, \textit{Deep Learning}. MIT Press, 2016.
+\bibitem{kingma2014adam} D. P. Kingma and J. Ba, ``Adam: A method for stochastic optimization,'' in \textit{International Conference on Learning Representations (ICLR)}, 2015.
+\bibitem{ioffe2015batch} S. Ioffe and C. Szegedy, ``Batch normalization: Accelerating deep network training by reducing internal covariate shift,'' in \textit{International Conference on Machine Learning}, 2015, pp. 448--456.
+\bibitem{srivastava2014dropout} N. Srivastava, G. Hinton, A. Krizhevsky, I. Sutskever, and R. Salakhutdinov, ``Dropout: A simple way to prevent neural networks from overfitting,'' \textit{Journal of Machine Learning Research}, vol. 15, pp. 1929--1958, 2014.
+\end{thebibliography}
 
 \end{document}
