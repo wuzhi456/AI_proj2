@@ -1,0 +1,376 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{algorithm}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{ctex} 
+
+\begin{document}
+
+\title{基于ANN的成人收入二分类模型设计}
+
+\author{\IEEEauthorblockN{韦嘉豪}
+\IEEEauthorblockA{\textit{计算机科学与工程系} \\
+\textit{南方科技大学}\\
+12313319@mail.sustech.edu.cn}}
+
+\maketitle
+
+\begin{abstract}
+本报告提出了一种基于简化神经网络的方法，用于预测个人年收入是否超过50,000美元，数据来源于1994年美国人口普查局数据库。我们通过多层感知机(MLP)实现了一个ANN模型，使用ReLU激活函数和softmax输出层。为解决数据集中的类别不平衡问题，我们采用下采样技术平衡训练数据。此模型在验证集上有着良好的表现。实验结果证明了ANN的深度学习架构在这个二分类任务上的有效性。
+\end{abstract}
+
+\section{引言}
+
+收入预测是社会经济分析和政策制定中的一个基本问题。基于人口统计和就业特征准确预测收入水平的能力在税收政策、社会福利项目和经济研究中具有重要应用价值。
+
+\subsection{问题背景}
+成人普查收入数据集由Kohavi和Becker从1994年美国人口普查局数据库中提取，包含个人的人口统计信息，包括年龄、教育程度、职业和其他普查属性。预测任务是确定一个人的年收入是否超过50,000美元，这是一个有监督的二分类问题。
+
+\subsection{研究动机}
+理解影响收入水平的因素有助于识别经济不平等现象并为政策决策提供信息。机器学习模型可以揭示人口统计特征之间的复杂模式和相互作用，这些模式和相互作用可能无法通过传统统计分析立即显现。
+
+\subsection{报告组织}
+本报告组织如下：第二节正式定义问题和符号；第三节描述我们的方法，包括数据预处理和神经网络架构；第四节介绍实验设置和结果；第五节总结讨论和未来工作。
+
+\section{预备知识}
+
+\subsection{问题形式化}
+我们将收入预测问题形式化为一个有监督的二分类任务。给定数据集 $\mathcal{D} = \{(\mathbf{x}_i, y_i)\}_{i=1}^{N}$，其中：
+\begin{itemize}
+    \item $\mathbf{x}_i \in \mathbb{R}^d$ 是一个 $d$ 维特征向量，表示个体 $i$ 的人口统计和普查属性
+    \item $y_i \in \{0, 1\}$ 是二元标签，其中 $y_i = 0$ 表示收入 $\leq$\$50K，$y_i = 1$ 表示收入 $>$\$50K
+    \item $N$ 是训练样本总数
+\end{itemize}
+
+目标是学习一个由参数 $\theta$ 参数化的分类器 $f_\theta: \mathbb{R}^d \rightarrow \{0, 1\}$，使经验风险最小化：
+\begin{equation}
+\theta^* = \argmin_\theta \frac{1}{N}\sum_{i=1}^{N} \mathcal{L}(f_\theta(\mathbf{x}_i), y_i)
+\end{equation}
+其中 $\mathcal{L}$ 是交叉熵损失函数。
+
+\subsection{数据集描述}
+数据集包含14个特征，分为两类：
+
+\textbf{数值特征：}
+\begin{itemize}
+    \item \texttt{age}: 个体年龄
+    \item \texttt{fnlwgt}: 最终权重（普查抽样权重）
+    \item \texttt{education\_num}: 受教育年限
+    \item \texttt{capital\_gain}: 资本收益
+    \item \texttt{capital\_loss}: 资本损失
+    \item \texttt{hours\_per\_week}: 每周工作小时数
+\end{itemize}
+
+\textbf{类别特征：}
+\begin{itemize}
+    \item \texttt{workclass}: 就业类型（如私营、政府）
+    \item \texttt{education}: 教育水平
+    \item \texttt{marital\_status}: 婚姻状况
+    \item \texttt{occupation}: 职业类型
+    \item \texttt{relationship}: 家庭关系
+    \item \texttt{race}: 种族
+    \item \texttt{sex}: 性别
+    \item \texttt{native\_country}: 原籍国
+\end{itemize}
+
+\subsection{符号说明}
+在本报告中，我们使用以下符号：
+\begin{itemize}
+    \item 粗体小写字母（$\mathbf{x}$）表示向量
+    \item 粗体大写字母（$\mathbf{W}$）表示矩阵
+    \item $\text{softmax}(\cdot)$ 表示softmax激活函数
+    \item $\text{ReLU}(\cdot)$ 表示修正线性单元激活函数
+    \item $h^{(l)}$ 表示第 $l$ 层的隐藏层激活值
+\end{itemize}
+
+\section{方法论}
+
+\subsection{总体工作流程}
+我们的方法包含三个主要阶段：
+\begin{enumerate}
+    \item \textbf{数据预处理}：处理缺失值、编码类别特征、归一化数值特征，并通过下采样平衡类别分布
+    \item \textbf{模型训练}：使用Adam优化器和反向传播训练多层感知机
+    \item \textbf{评估}：使用多个指标评估模型性能并生成预测
+\end{enumerate}
+
+\subsection{数据预处理流程}
+
+\subsubsection{缺失值处理}
+数据集包含用``?''表示的缺失值。我们采用以下策略：
+\begin{itemize}
+    \item 对于类别特征：用众数（最频繁的值）替换缺失值
+    \item 对于数值特征：用中位数替换缺失值
+\end{itemize}
+
+\subsubsection{特征编码}
+类别特征使用标签编码，将每个类别映射为整数值。这种转换是必要的，因为神经网络需要数值输入。
+
+\subsubsection{特征缩放}
+数值特征使用z-score标准化：
+\begin{equation}
+\mathbf{x}_{\text{scaled}} = \frac{\mathbf{x} - \mu}{\sigma}
+\end{equation}
+其中 $\mu$ 是均值，$\sigma$ 是在训练集上计算的标准差。
+
+\subsubsection{下采样处理类别不平衡}
+由于数据集存在类别不平衡问题（约76\%样本属于类别0，24\%样本属于类别1），我们采用下采样（Downsampling）技术来平衡训练数据。下采样通过随机减少多数类样本数量，使其与少数类样本数量相等。
+
+具体实现如下：
+\begin{enumerate}
+    \item 识别多数类（收入$\leq$\$50K）和少数类（收入$>$\$50K）
+    \item 计算少数类样本数量 $N_{minority}$
+    \item 从多数类中随机抽取 $N_{minority}$ 个样本（无放回抽样）
+    \item 将抽取的多数类样本与全部少数类样本合并
+    \item 打乱合并后的数据集
+\end{enumerate}
+
+下采样的优点：
+\begin{itemize}
+    \item 消除类别不平衡对模型训练的影响
+    \item 减少训练数据量，加快训练速度
+    \item 避免模型偏向多数类
+\end{itemize}
+
+\subsection{神经网络架构}
+
+我们采用多层感知机(MLP)，架构如下：
+
+\begin{algorithm}[h]
+\caption{神经网络前向传播}
+\begin{algorithmic}
+\STATE \textbf{输入:} 特征向量 $\mathbf{x} \in \mathbb{R}^d$
+\STATE \textbf{输出:} 概率向量 $\mathbf{p} \in [0,1]^2$
+\STATE $\mathbf{h}^{(0)} \leftarrow \mathbf{x}$
+\FOR{$l = 1$ to $L$}
+    \STATE $\mathbf{z}^{(l)} \leftarrow \mathbf{W}^{(l)}\mathbf{h}^{(l-1)} + \mathbf{b}^{(l)}$
+    \STATE $\mathbf{h}^{(l)} \leftarrow \text{ReLU}(\mathbf{z}^{(l)})$
+\ENDFOR
+\STATE $\mathbf{z}^{\text{out}} \leftarrow \mathbf{W}^{\text{out}}\mathbf{h}^{(L)} + \mathbf{b}^{\text{out}}$
+\STATE $\mathbf{p} \leftarrow \text{softmax}(\mathbf{z}^{\text{out}})$
+\STATE \textbf{返回} $\mathbf{p}$
+\end{algorithmic}
+\end{algorithm}
+
+网络组成：
+\begin{itemize}
+    \item \textbf{输入层}：$d$ 个神经元（预处理后的特征数量）
+    \item \textbf{隐藏层}：三个隐藏层，分别包含128、64和32个神经元
+    \item \textbf{激活函数}：每个隐藏层后使用ReLU激活函数
+    \item \textbf{输出层}：两个神经元，使用softmax激活函数进行二分类
+\end{itemize}
+
+\subsection{训练过程}
+
+\subsubsection{损失函数}
+我们使用交叉熵损失函数进行多分类：
+\begin{equation}
+\mathcal{L}(\theta) = -\frac{1}{N}\sum_{i=1}^{N}\sum_{c=1}^{C}y_{i,c}\log(\hat{y}_{i,c})
+\end{equation}
+其中 $C=2$ 是类别数量，$y_{i,c}$ 是真实标签（one-hot编码），$\hat{y}_{i,c}$ 是类别 $c$ 的预测概率。
+
+\subsubsection{优化}
+使用Adam优化器训练模型，学习率 $\alpha = 0.00001$。训练过程：
+\begin{itemize}
+    \item 批次大小：128
+    \item 训练轮数：500
+    \item 训练-验证集划分：80-20
+    \item 随机种子：1
+\end{itemize}
+
+\subsection{复杂度分析}
+
+\subsubsection{时间复杂度}
+对于具有 $L$ 层和最大宽度 $W$ 的神经网络：
+\begin{itemize}
+    \item 前向传播：每个样本 $O(L \cdot W^2)$
+    \item 反向传播：每个样本 $O(L \cdot W^2)$
+    \item 训练复杂度：$O(E \cdot N \cdot L \cdot W^2)$，其中 $E$ 是训练轮数，$N$ 是训练集大小
+\end{itemize}
+
+\subsubsection{空间复杂度}
+存储参数的空间复杂度为 $O(d \cdot W + W^2 \cdot L)$，其中 $d$ 是输入维度。
+
+
+\section{实验}
+
+\subsection{实验设置}
+
+\subsubsection{数据集统计}
+\begin{itemize}
+    \item 原始训练样本：22,792个
+    \item 下采样后训练样本：约10,920个（类别0和类别1各约5,460个）
+    \item 测试样本：9,769个
+    \item 特征数量：14个（预处理前）
+    \item 原始类别分布：不平衡，约76\%样本属于类别0（$\leq$\$50K），24\%样本属于类别1（$>$\$50K）
+    \item 下采样后类别分布：平衡，50\%类别0，50\%类别1
+\end{itemize}
+
+\subsubsection{实现细节}
+\begin{itemize}
+    \item \textbf{框架}：PyTorch 2.9.1
+    \item \textbf{硬件}：CPU
+    \item \textbf{Python版本}：3.12
+    \item \textbf{其他库}：NumPy 2.3.5、Pandas 2.3.3、Scikit-learn 1.7.2、Matplotlib 3.10.7
+\end{itemize}
+
+\subsubsection{评估指标}
+我们使用多个指标评估模型性能：
+\begin{itemize}
+    \item \textbf{准确率}：预测的总体正确性；
+    \item \textbf{精确率}：预测为正例中真正例的比例；
+    \item \textbf{召回率}：实际正例中被正确预测的比例；
+    \item \textbf{F1分数}：精确率和召回率的调和平均值；
+    \item \textbf{ROC-AUC}：受试者工作特征曲线下面积。
+\text{其中，我们以提高准确率作为训练该模型的主要目的。}
+\end{itemize}
+
+\subsection{结果}
+
+\subsubsection{训练进程}
+图\ref{fig:training}展示了50个训练轮次中训练和验证的损失/准确率曲线。模型平稳收敛，没有明显过拟合，验证指标与训练指标紧密跟踪。
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/training_history.png}
+\caption{训练和验证损失/准确率随训练轮次的变化}
+\label{fig:training}
+\end{figure}
+
+\subsubsection{性能指标}
+表\ref{tab:performance}展示了验证集上的最终性能指标。
+
+\begin{table}[h]
+\centering
+\caption{模型在验证集上的性能}
+\label{tab:performance}
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{指标} & \textbf{数值} \\
+\midrule
+准确率 & 0.8462 \\
+精确率 & 0.7311 \\
+召回率 & 0.5719 \\
+F1分数 & 0.6418 \\
+ROC-AUC & 0.9035 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{混淆矩阵分析}
+图\ref{fig:confusion}展示了验证集上的混淆矩阵。模型在两个类别上都表现良好，但由于类别不平衡，对多数类有一定偏向。
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\linewidth]{figures/confusion_matrix.png}
+\caption{验证集上的混淆矩阵}
+\label{fig:confusion}
+\end{figure}
+
+\subsubsection{ROC曲线}
+图\ref{fig:roc}展示了ROC曲线，证明了模型在各种阈值下区分类别的能力。
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\linewidth]{figures/roc_curve.png}
+\caption{ROC曲线和AUC分数}
+\label{fig:roc}
+\end{figure}
+
+\subsection{超参数分析}
+
+我们实验了不同的配置：
+\begin{itemize}
+    \item \textbf{网络深度}：测试了具有2-4个隐藏层的架构。三层在容量和简洁性之间提供了最佳平衡。
+    \item \textbf{层宽度}：递减宽度（128→64→32）优于均匀宽度，允许逐步特征抽象。
+    \item \textbf{学习率}：测试了$\{0.00001, 0.0001, 0.001, 0.01\}$；0.00001在不出现不稳定的情况下实现较快收敛，（其余情况在收敛时测试集准确率总会以一定幅度上下波动，目前看来震荡较小的只有0.00001，大概在345次左右开始收敛）。
+    \item \textbf{架构简洁性}：仅使用ReLU激活的简洁架构证明是有效的，无需批归一化或dropout。
+\end{itemize}
+
+\subsection{分析与讨论}
+
+\subsubsection{模型性能}
+简化的神经网络在该数据集上取得了具有竞争力的性能。高ROC-AUC分数表明在收入类别之间具有强大的判别能力。模型受益于：
+\begin{itemize}
+    \item 采用ReLU激活
+    \item Softmax输出提供良好校准的概率估计
+    \item 适当的特征缩放实现高效学习
+\end{itemize}
+
+\subsubsection{下采样对类别不平衡的处理}
+原始数据集存在类别不平衡（76\% vs 24\%），这会导致模型偏向多数类。为解决这一问题，我们在数据预处理阶段采用了下采样技术，将多数类样本随机减少至与少数类相同数量，实现1:1的类别平衡。
+
+下采样的效果：
+\begin{itemize}
+    \item 消除了类别不平衡对训练的影响
+    \item 模型不再偏向预测多数类
+    \item 提高了模型对少数类（高收入人群）的识别能力
+    \item 减少了训练时间，因为训练样本数量减少
+\end{itemize}
+
+相比于其他处理类别不平衡的方法（如过采样SMOTE、类别加权等），下采样的优点是简单直接，不会引入合成样本，保持数据的真实性。缺点是可能丢失部分多数类的信息，但对于本任务而言，下采样后的数据仍能有效训练模型。
+
+\subsubsection{特征重要性}
+虽然神经网络通常被认为是"黑盒"，但部分特征可能对预测贡献更大：
+\begin{itemize}
+    \item 教育水平和受教育年限
+    \item 职业和每周工作小时数
+    \item 资本收益/损失
+    \item 年龄和婚姻状况
+\end{itemize}
+
+\section{结论}
+
+\subsection{总结}
+本项目成功将神经网络应用于成人普查收入预测问题。此次的MLP在验证集上取得了可观的性能。该方法论证明了简洁、直接的ANN深度学习架构在表格数据分类任务上的有效性。
+
+\subsection{关键发现}
+\begin{itemize}
+    \item 适当的数据预处理对神经网络性能至关重要
+    \item 下采样有效解决了类别不平衡问题，提高模型对少数类的识别能力
+    \item 仅使用ReLU激活的简化架构是有效的
+    \item Softmax激活提供良好校准的概率输出
+    \item 三层架构为此问题提供了足够的容量
+    \item 模型有效处理类别和数值特征
+\end{itemize}
+
+\subsection{局限性}
+应该注意以下几个局限性：
+\begin{itemize}
+    \item 下采样虽然解决了类别不平衡，但可能丢失部分多数类的有用信息
+    \item 标签编码可能无法捕获某些类别特征中的序数关系
+    \item 与决策树相比，模型缺乏可解释性
+\end{itemize}
+
+\subsection{未来工作}
+潜在的改进包括：
+\begin{itemize}
+    \item 探索其他类别平衡技术（过采样SMOTE、类别加权损失函数）并与下采样效果对比
+    \item 探索类别特征的one-hot编码
+    \item 测试正则化技术（批归一化、dropout、L2正则化）
+    \item 特征工程以创建交互项
+    \item 使用网格搜索或贝叶斯优化进行超参数优化
+    \item 使用SHAP或LIME等技术进行模型解释
+    \item 与其他算法（随机森林、SVM）进行比较
+\end{itemize}
+
+\subsection{经验教训}
+本项目提供了以下宝贵见解：
+\begin{itemize}
+    \item 系统化数据预处理的重要性
+    \item 下采样是处理类别不平衡的简单有效方法
+    \item 平衡模型复杂度和泛化能力
+    \item 有效使用PyTorch进行分类任务
+    \item 使用多个互补指标进行评估
+    \item 准确率和可解释性之间的权衡
+\end{itemize}
+
+% \begin{thebibliography}{00}
+% \end{thebibliography}
+
+\end{document}
