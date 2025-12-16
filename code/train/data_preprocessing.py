@@ -188,6 +188,12 @@ class DataPreprocessor:
             
         Returns:
             tuple: (X_train_scaled, y_train, X_test_scaled, feature_names)
+            
+        Note:
+            Downsampling is applied after feature scaling. This ensures that
+            the scaler is fitted on the full training data for more robust
+            scaling parameters, which are then used consistently for both
+            training and test data transformation.
         """
         # Identify feature types
         self.identify_feature_types(train_df)
@@ -203,11 +209,11 @@ class DataPreprocessor:
         # Store feature names
         self.feature_names = train_df.columns.tolist()
         
-        # Scale features
+        # Scale features (fit on full training data for robust statistics)
         X_train_scaled = self.scale_features(train_df, is_training=True)
         X_test_scaled = self.scale_features(test_df, is_training=False)
         
-        # Apply downsampling if requested
+        # Apply downsampling if requested (after scaling to preserve scaler statistics)
         if apply_downsampling:
             X_train_scaled, train_labels = self.downsample(X_train_scaled, train_labels, random_state)
         
