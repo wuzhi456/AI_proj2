@@ -1,11 +1,15 @@
 """
 Data preprocessing utilities for Adult Census Income dataset
 """
+import logging
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.utils import resample
+
+# Configure logger for this module
+logger = logging.getLogger(__name__)
 
 
 class DataPreprocessor:
@@ -169,9 +173,9 @@ class DataPreprocessor:
         n_minority = len(minority_samples)
         n_majority = len(majority_samples)
         
-        print(f"Original class distribution:")
-        print(f"  Class {majority_class} (majority): {n_majority} samples")
-        print(f"  Class {minority_class} (minority): {n_minority} samples")
+        logger.info("Original class distribution:")
+        logger.info(f"  Class {majority_class} (majority): {n_majority} samples")
+        logger.info(f"  Class {minority_class} (minority): {n_minority} samples")
         
         # Downsample majority class to match minority class
         majority_downsampled = resample(
@@ -191,10 +195,10 @@ class DataPreprocessor:
         y_balanced = balanced_df['_label'].values
         X_balanced = balanced_df.drop('_label', axis=1).values
         
-        print(f"After downsampling:")
-        print(f"  Class {majority_class}: {np.sum(y_balanced == majority_class)} samples")
-        print(f"  Class {minority_class}: {np.sum(y_balanced == minority_class)} samples")
-        print(f"  Total samples: {len(y_balanced)}")
+        logger.info("After downsampling:")
+        logger.info(f"  Class {majority_class}: {np.sum(y_balanced == majority_class)} samples")
+        logger.info(f"  Class {minority_class}: {np.sum(y_balanced == minority_class)} samples")
+        logger.info(f"  Total samples: {len(y_balanced)}")
         
         return X_balanced, y_balanced
     
