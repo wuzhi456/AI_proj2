@@ -12,23 +12,21 @@
 
 \begin{document}
 
-\title{基于简化神经网络的成人普查收入预测}
+\title{基于ANN的成人普查收入预测}
 
-\author{\IEEEauthorblockN{学生姓名}
+\author{\IEEEauthorblockN{韦嘉豪}
 \IEEEauthorblockA{\textit{计算机科学与工程系} \\
-\textit{南方科技大学}\\
-深圳，中国 \\
-studentid@mail.sustech.edu.cn}}
+12313319@mail.sustech.edu.cn}}
 
 \maketitle
 
 \begin{abstract}
-本报告提出了一种基于简化神经网络的方法，用于预测个人年收入是否超过50,000美元，数据来源于1994年美国人口普查局数据库。我们实现了一个精简的多层感知机(MLP)，仅使用ReLU激活函数和softmax输出层，专注于简洁的架构设计，不使用批归一化或dropout。所提出的模型在验证集上取得了具有竞争力的性能，并妥善处理了类别特征和缺失值。实验结果证明了简单直接的深度学习架构在这个二分类任务上的有效性。
+本报告提出了一种基于神经网络，用于预测个人年收入是否超过50,000美元的方法，数据来源于1994年美国人口普查局数据库。我们通过了一个的多层感知机(MLP)来实现ANN，使用ReLU激活函数和softmax输出层。该模型在验证集上取得了具有竞争力的性能。本次实验证明了ANN的深度学习架构在这个二分类任务上的有效性。
 \end{abstract}
 
 \section{引言}
 
-收入预测是社会经济分析和政策制定中的一个基本问题\cite{kohavi1996scaling}。基于人口统计和就业特征准确预测收入水平的能力在税收政策、社会福利项目和经济研究中具有重要应用价值。
+收入预测是社会经济分析和政策制定中的一个基本问题。基于人口统计和就业特征准确预测收入水平的能力在税收政策、社会福利项目和经济研究中具有重要应用价值。
 
 \subsection{问题背景}
 成人普查收入数据集由Kohavi和Becker从1994年美国人口普查局数据库中提取，包含个人的人口统计信息，包括年龄、教育程度、职业和其他普查属性。预测任务是确定一个人的年收入是否超过50,000美元，这是一个有监督的二分类问题。
@@ -48,12 +46,6 @@ studentid@mail.sustech.edu.cn}}
     \item $y_i \in \{0, 1\}$ 是二元标签，其中 $y_i = 0$ 表示收入 $\leq$\$50K，$y_i = 1$ 表示收入 $>$\$50K
     \item $N$ 是训练样本总数
 \end{itemize}
-
-目标是学习一个由参数 $\theta$ 参数化的分类器 $f_\theta: \mathbb{R}^d \rightarrow \{0, 1\}$，使经验风险最小化：
-\begin{equation}
-\theta^* = \argmin_\theta \frac{1}{N}\sum_{i=1}^{N} \mathcal{L}(f_\theta(\mathbf{x}_i), y_i)
-\end{equation}
-其中 $\mathcal{L}$ 是交叉熵损失函数。
 
 \subsection{数据集描述}
 数据集包含14个特征，分为两类：
@@ -102,13 +94,6 @@ studentid@mail.sustech.edu.cn}}
 
 \subsection{数据预处理流程}
 
-\subsubsection{缺失值处理}
-数据集包含用``?''表示的缺失值。我们采用以下策略：
-\begin{itemize}
-    \item 对于类别特征：用众数（最频繁的值）替换缺失值
-    \item 对于数值特征：用中位数替换缺失值
-\end{itemize}
-
 \subsubsection{特征编码}
 类别特征使用标签编码，将每个类别映射为整数值。这种转换是必要的，因为神经网络需要数值输入。
 
@@ -120,13 +105,13 @@ studentid@mail.sustech.edu.cn}}
 其中 $\mu$ 是均值，$\sigma$ 是在训练集上计算的标准差。
 
 \subsubsection{下采样处理}
-由于数据集存在类别不平衡问题（约76\%的样本属于类别0，24\%属于类别1），我们实现了下采样(Downsampling)技术来平衡训练数据。下采样通过随机减少多数类的样本数量，使其与少数类样本数量相等：
+由于数据集存在类别不平衡问题（约76\%的样本属于类别0，24\%属于类别1），本次实验采用了下采样(Downsampling)技术来平衡训练数据。下采样通过随机减少多数类的样本数量，使其与少数类样本数量相等：
 \begin{itemize}
     \item 首先识别少数类和多数类
     \item 从多数类中随机选择与少数类数量相等的样本
     \item 合并两类样本形成平衡的训练集
 \end{itemize}
-这种方法可以有效缓解模型对多数类的偏向，提高对少数类的预测能力。
+这种方法可以有效缓解模型对多数类的偏向，提高对少数类的预测能力。同时为了验证用这种方式训练出来的模型的泛化能力，在后续的准确率分析中测试样本为原始测试样本。
 
 \subsection{神经网络架构}
 
@@ -166,12 +151,11 @@ studentid@mail.sustech.edu.cn}}
 其中 $C=2$ 是类别数量，$y_{i,c}$ 是真实标签（one-hot编码），$\hat{y}_{i,c}$ 是类别 $c$ 的预测概率。
 
 \subsubsection{优化}
-使用Adam优化器训练模型，学习率 $\alpha = 0.001$。训练过程：
+使用Adam优化器训练模型，学习率 $\alpha = 0.00001$。训练过程：
 \begin{itemize}
     \item 批次大小：128
-    \item 训练轮数：50
-    \item 训练-验证集划分：80-20
-    \item 随机种子：42（确保可复现性）
+    \item 训练轮数：500
+    \item 随机种子：1
 \end{itemize}
 
 \subsection{复杂度分析}
@@ -192,13 +176,28 @@ studentid@mail.sustech.edu.cn}}
 
 \subsection{实验设置}
 
-\subsubsection{数据集统计}
+\subsubsection{原始数据集统计}
 \begin{itemize}
     \item 训练样本：22,792个（18,233训练 + 4,559验证）
     \item 测试样本：9,769个
     \item 特征数量：14个（预处理前）
     \item 类别分布：不平衡，约76\%样本属于类别0（$\leq$\$50K），24\%样本属于类别1（$>$\$50K）
 \end{itemize}
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/label_distribution.png}
+    \caption{原始训练样本分布}
+    \label{fig:confusion}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{figures/test_predictions_distribution.png}
+    \caption{原始测试样本分布}
+    \label{fig:confusion}
+\end{figure}
 
 \subsubsection{实现细节}
 \begin{itemize}
@@ -241,11 +240,11 @@ studentid@mail.sustech.edu.cn}}
 \toprule
 \textbf{指标} & \textbf{数值} \\
 \midrule
-准确率 & 0.8462 \\
-精确率 & 0.7311 \\
-召回率 & 0.5719 \\
-F1分数 & 0.6418 \\
-ROC-AUC & 0.9035 \\
+准确率 & 0.8128 \\
+精确率 & 0.7879 \\
+召回率 & 0.8561 \\
+F1分数 & 0.8206 \\
+ROC-AUC & 0.8959 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -270,16 +269,6 @@ ROC-AUC & 0.9035 \\
 \label{fig:roc}
 \end{figure}
 
-\subsection{超参数分析}
-
-我们实验了不同的配置：
-\begin{itemize}
-    \item \textbf{网络深度}：测试了具有2-4个隐藏层的架构。三层在容量和简洁性之间提供了最佳平衡。
-    \item \textbf{层宽度}：递减宽度（128→64→32）优于均匀宽度，允许逐步特征抽象。
-    \item \textbf{学习率}：测试了$\{0.0001, 0.001, 0.01\}$；0.001在不出现不稳定的情况下实现最快收敛。
-    \item \textbf{架构简洁性}：仅使用ReLU激活的简洁架构证明是有效的，无需批归一化或dropout。
-\end{itemize}
-
 \subsection{分析与讨论}
 
 \subsubsection{模型性能}
@@ -291,11 +280,9 @@ ROC-AUC & 0.9035 \\
 \end{itemize}
 
 \subsubsection{类别不平衡的影响}
-数据集存在类别不平衡（76\% vs 24\%），这影响了模型预测。模型在多数类（$\leq$\$50K）上显示出更高的准确率，如混淆矩阵所示。未来工作可以通过以下方式解决这个问题：
-数据集存在类别不平衡（76\% vs 24\%），这影响了模型预测，在之前尝试过的MLP训练中，对于1:1的数据二分类中直接使用该模型过拟合情况没有本次项目中严重，本次项目过拟合情况具体表现在随着训练的进行测试集准确率有微小下降的趋势。模型在多数类（$\leq$\$50K）上显示出更高的准确率，如混淆矩阵所示。为解决这个问题，我们实现了下采样技术，通过减少多数类样本数量来平衡训练数据。此外，未来工作还可以通过以下方式进一步改进：
+数据集存在类别不平衡（76\% vs 24\%），这影响了模型预测，为解决这个问题，本次实验采用了下采样技术，通过减少多数类样本数量来平衡训练数据。此外，未来工作还可以通过以下方式进一步改进：
 \begin{itemize}
     \item 类别加权损失函数
-    \item 对少数类进行过采样（SMOTE）
     \item 调整预测阈值
 \end{itemize}
 
@@ -318,7 +305,7 @@ ROC-AUC & 0.9035 \\
     \item 适当的数据预处理对神经网络性能至关重要
     \item 仅使用ReLU激活的简化架构是有效的
     \item Softmax激活提供良好校准的概率输出
-    \item 三层架构为此问题提供了足够的容量
+    \item 三层架构为此问题提供了足够的容量，同时无过拟合现象出现
     \item 模型有效处理类别和数值特征
 \end{itemize}
 
@@ -334,7 +321,6 @@ ROC-AUC & 0.9035 \\
 \subsection{未来工作}
 潜在的改进包括：
 \begin{itemize}
-    \item 实现类别平衡技术（SMOTE、类别权重）
     \item 探索类别特征的one-hot编码
     \item 测试正则化技术（批归一化、dropout、L2正则化）
     \item 特征工程以创建交互项
@@ -352,13 +338,5 @@ ROC-AUC & 0.9035 \\
     \item 使用多个互补指标进行评估
     \item 准确率和可解释性之间的权衡
 \end{itemize}
-
-\begin{thebibliography}{00}
-\bibitem{kohavi1996scaling} R. Kohavi, ``Scaling up the accuracy of naive-bayes classifiers: A decision-tree hybrid,'' in \textit{Proceedings of the Second International Conference on Knowledge Discovery and Data Mining}, 1996, pp. 202--207.
-\bibitem{goodfellow2016deep} I. Goodfellow, Y. Bengio, and A. Courville, \textit{Deep Learning}. MIT Press, 2016.
-\bibitem{kingma2014adam} D. P. Kingma and J. Ba, ``Adam: A method for stochastic optimization,'' in \textit{International Conference on Learning Representations (ICLR)}, 2015.
-\bibitem{ioffe2015batch} S. Ioffe and C. Szegedy, ``Batch normalization: Accelerating deep network training by reducing internal covariate shift,'' in \textit{International Conference on Machine Learning}, 2015, pp. 448--456.
-\bibitem{srivastava2014dropout} N. Srivastava, G. Hinton, A. Krizhevsky, I. Sutskever, and R. Salakhutdinov, ``Dropout: A simple way to prevent neural networks from overfitting,'' \textit{Journal of Machine Learning Research}, vol. 15, pp. 1929--1958, 2014.
-\end{thebibliography}
 
 \end{document}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.19)  16 DEC 2025 18:59
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.19)  17 DEC 2025 19:10
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -543,43 +543,31 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 48
  (/usr/local/texlive/2025/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Live
 ))
-LaTeX Font Info:    Trying to load font information for C70+rm on input line 23.
+LaTeX Font Info:    Trying to load font information for C70+rm on input line 21.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/ctex/fd/c70rm.fd
 File: c70rm.fd 2022/07/14 v2.5.10 Chinese font definition (CTEX)
 )
-Package CJKpunct Info: punctuation spaces for family 'rm' do not exist. Use family 'def' instead. on input line 23.
+Package CJKpunct Info: punctuation spaces for family 'rm' do not exist. Use family 'def' instead. on input line 24.
 
 
 LaTeX Font Warning: Font shape `C70/rm/m/sc' undefined
-(Font)              using `C70/rm/m/n' instead on input line 29.
+(Font)              using `C70/rm/m/n' instead on input line 27.
 
-
-LaTeX Warning: Citation `kohavi1996scaling' on page 1 undefined on input line 31.
-
-LaTeX Font Info:    Trying to load font information for U+msa on input line 45.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 43.
 (/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 45.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 43.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
 
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 48.
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 46.
 (/usr/local/texlive/2025/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
-/Users/wuzhi/Desktop/MyProgram/2025秋/人工智能/code/proj2/report.tex:54: Undefined control sequence.
-l.54 \theta^* = \argmin
-                       _\theta \frac{1}{N}\sum_{i=1}^{N} \mathcal{L}(f_\thet...
-The control sequence at the end of the top line
-of your error message was never \def'ed. If you have
-misspelled it (e.g., `\hobx'), type `I' and the correct
-spelling (e.g., `I\hbox'). Otherwise just continue,
-and I'll forget about whatever was undefined.
-
-LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 63.
-(/usr/local/texlive/2025/texmf-dist/tex/latex/psnfss/ot1pcr.fd
+LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 55.
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
 
@@ -588,67 +576,63 @@ File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 
 ]
 
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+
 
 
 [2]
-Underfull \hbox (badness 3612) in paragraph at lines 200--201
+Underfull \hbox (badness 3612) in paragraph at lines 184--185
 []\C70/rm/m/n/10.53937/7c { \C70/rm/m/n/10.53937/52 + ^^F \C70/rm/m/n/10.53937/5e ^^C|\C70/rm/m/n/10.53937/ff ^^Z| \C70/rm/m/n/10.53937/4e ^^M \C70/rm/m/n/10.53937/5e s \C70/rm/m/n/10.53937/88 a|\C70/rm/m/n/10.53937/ff ^^L| \C70/rm/m/n/10.53937/7e �\OT1/ptm/m/n/10.53937 76%\C70/rm/m/n/10.53937/68 7 \C70/rm/m/n/10.53937/67 , \C70/rm/m/n/10.53937/5c ^ \C70/rm/m/n/10.53937/4e � \C70/rm/m/n/10.53937/7c { \C70/rm/m/n/10.53937/52 +\OT1/ptm/m/n/10.53937 0
  []
 
+<figures/label_distribution.png, id=279, 569.7285pt x 425.6703pt>
+File: figures/label_distribution.png Graphic file (type png)
+<use figures/label_distribution.png>
+Package pdftex.def Info: figures/label_distribution.png  used on input line 190.
+(pdftex.def)             Requested size: 201.60077pt x 150.62361pt.
+<figures/test_predictions_distribution.png, id=281, 569.7285pt x 425.6703pt>
+File: figures/test_predictions_distribution.png Graphic file (type png)
+<use figures/test_predictions_distribution.png>
+Package pdftex.def Info: figures/test_predictions_distribution.png  used on input line 197.
+(pdftex.def)             Requested size: 201.60077pt x 150.62361pt.
 
-LaTeX Warning: Reference `fig:training' on page 3 undefined on input line 224.
+LaTeX Warning: Reference `fig:training' on page 3 undefined on input line 223.
 
-<figures/training_history.png, id=289, 1003.3485pt x 351.9549pt>
+
+
+<figures/training_history.png, id=283, 1003.3485pt x 351.9549pt>
 File: figures/training_history.png Graphic file (type png)
 <use figures/training_history.png>
-Package pdftex.def Info: figures/training_history.png  used on input line 228.
+Package pdftex.def Info: figures/training_history.png  used on input line 227.
 (pdftex.def)             Requested size: 252.0pt x 88.39665pt.
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+LaTeX Warning: Reference `tab:performance' on page 3 undefined on input line 233.
 
 
-LaTeX Warning: Reference `tab:performance' on page 3 undefined on input line 234.
+LaTeX Warning: Reference `fig:confusion' on page 3 undefined on input line 253.
 
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-LaTeX Warning: Reference `fig:confusion' on page 3 undefined on input line 254.
-
-<figures/confusion_matrix.png, id=291, 457.9509pt x 388.8126pt>
+<figures/confusion_matrix.png, id=284, 457.9509pt x 388.8126pt>
 File: figures/confusion_matrix.png Graphic file (type png)
 <use figures/confusion_matrix.png>
-Package pdftex.def Info: figures/confusion_matrix.png  used on input line 258.
+Package pdftex.def Info: figures/confusion_matrix.png  used on input line 257.
 (pdftex.def)             Requested size: 201.60077pt x 171.16705pt.
 
-LaTeX Warning: `h' float specifier changed to `ht'.
+LaTeX Warning: Reference `fig:roc' on page 3 undefined on input line 263.
 
-
-LaTeX Warning: Reference `fig:roc' on page 3 undefined on input line 264.
-
-<figures/roc_curve.png, id=292, 569.7285pt x 424.4658pt>
+<figures/roc_curve.png, id=285, 569.7285pt x 424.4658pt>
 File: figures/roc_curve.png Graphic file (type png)
 <use figures/roc_curve.png>
-Package pdftex.def Info: figures/roc_curve.png  used on input line 268.
+Package pdftex.def Info: figures/roc_curve.png  used on input line 267.
 (pdftex.def)             Requested size: 201.60077pt x 150.1974pt.
-
-
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 278.
-LaTeX Info: Symbol \textrightarrow not provided by
-            font family ptm in TS1 encoding.
-            Default family used instead on input line 278.
 
 
-[3{/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc} <./figures/training_history.png>]
+[3 <./figures/label_distribution.png> <./figures/test_predictions_distribution.png> <./figures/training_history.png> <./figures/confusion_matrix.png>]
 
-
-
-[4 <./figures/confusion_matrix.png> <./figures/roc_curve.png>]
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -662,11 +646,7 @@ Before submitting the final camera ready copy, remember to:
 
 
 
-
-
-[5
-
-] (./report.aux)
+[4 <./figures/roc_curve.png>] (./report.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/07/14>
@@ -683,13 +663,13 @@ LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
  ) 
 Here is how much of TeX's memory you used:
- 9681 strings out of 473190
- 170449 string characters out of 5715800
- 579858 words of memory out of 5000000
- 32326 multiletter control sequences out of 15000+600000
- 686258 words of font info for 406 fonts, out of 8000000 for 9000
+ 9591 strings out of 473190
+ 169098 string characters out of 5715800
+ 577858 words of memory out of 5000000
+ 32255 multiletter control sequences out of 15000+600000
+ 682625 words of font info for 393 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 80i,8n,83p,754b,531s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 80i,8n,83p,754b,430s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
 !pdfTeX error: pdflatex (file unisong83): Font unisong83 at 632 not found
  ==> Fatal error occurred, no output PDF file produced!

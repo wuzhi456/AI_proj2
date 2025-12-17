@@ -66,8 +66,8 @@ class DataPreprocessor:
         """
         df = df.copy()
         
-        # Replace ' ?' with NaN for easier handling
-        df = df.replace(' ?', np.nan)
+        # Replace '?' with NaN for easier handling
+        df = df.replace('?', np.nan)
         
         # Fill missing categorical values with mode
         for col in self.categorical_features:
