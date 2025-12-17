@@ -3,7 +3,7 @@ Data preprocessing utilities for Adult Census Income dataset
 """
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.model_selection import train_test_split
 
 
@@ -14,7 +14,7 @@ class DataPreprocessor:
     
     def __init__(self):
         """Initialize the data preprocessor."""
-        self.label_encoders = {}
+        self.onehot_encoder = None
         self.scaler = StandardScaler()
         self.feature_names = None
         self.categorical_features = []
@@ -74,44 +74,59 @@ class DataPreprocessor:
             if col in df.columns and df[col].isna().any():
                 mode_val = df[col].mode()
                 if len(mode_val) > 0:
-                    df[col].fillna(mode_val[0], inplace=True)
+                    df[col] = df[col].fillna(mode_val[0])
         
         # Fill missing numerical values with median
         for col in self.numerical_features:
             if col in df.columns and df[col].isna().any():
-                df[col].fillna(df[col].median(), inplace=True)
+                df[col] = df[col].fillna(df[col].median())
         
         return df
     
     def encode_categorical_features(self, df, is_training=True):
         """
-        Encode categorical features using label encoding.
+        Encode categorical features using one-hot encoding.
         
         Args:
             df (pd.DataFrame): Input dataframe
             is_training (bool): Whether this is training data
             
         Returns:
-            pd.DataFrame: Dataframe with encoded categorical features
+            pd.DataFrame: Dataframe with one-hot encoded categorical features
         """
         df = df.copy()
         
-        for col in self.categorical_features:
-            if col not in df.columns:
-                continue
-                
-            if is_training:
-                # Fit and transform for training data
-                self.label_encoders[col] = LabelEncoder()
-                df[col] = self.label_encoders[col].fit_transform(df[col].astype(str))
-            else:
-                # Transform for test data
-                if col in self.label_encoders:
-                    # Handle unseen categories
-                    df[col] = df[col].astype(str)
-                    known_labels = set(self.label_encoders[col].classes_)
-                    df[col] = df[col].apply(lambda x: x if x in known_labels else self.label_encoders[col].classes_[0])
-                    df[col] = self.label_encoders[col].transform(df[col])
+        if not self.categorical_features:
+            return df
+        
+        # Filter to only include categorical features that exist in the dataframe
+        cat_cols = [col for col in self.categorical_features if col in df.columns]
+        
+        if not cat_cols:
+            return df
+        
+        # Get categorical columns data
+        cat_data = df[cat_cols].astype(str)
+        
+        if is_training:
+            # Fit and transform for training data
+            self.onehot_encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
+            encoded = self.onehot_encoder.fit_transform(cat_data)
+        else:
+            # Transform for test data
+            if self.onehot_encoder is None:
+                raise ValueError("One-hot encoder not fitted. Call encode_categorical_features with is_training=True first.")
+            encoded = self.onehot_encoder.transform(cat_data)
+        
+        # Create column names for one-hot encoded features
+        encoded_columns = self.onehot_encoder.get_feature_names_out(cat_cols)
+        
+        # Create dataframe with encoded features
+        encoded_df = pd.DataFrame(encoded, columns=encoded_columns, index=df.index)
+        
+        # Drop original categorical columns and add encoded columns
+        df = df.drop(columns=cat_cols)
+        df = pd.concat([df, encoded_df], axis=1)
         
         return df
     
