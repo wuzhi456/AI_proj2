@@ -74,12 +74,12 @@ class DataPreprocessor:
             if col in df.columns and df[col].isna().any():
                 mode_val = df[col].mode()
                 if len(mode_val) > 0:
-                    df[col].fillna(mode_val[0], inplace=True)
+                    df[col] = df[col].fillna(mode_val[0])
         
         # Fill missing numerical values with median
         for col in self.numerical_features:
             if col in df.columns and df[col].isna().any():
-                df[col].fillna(df[col].median(), inplace=True)
+                df[col] = df[col].fillna(df[col].median())
         
         return df
     
